@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Last Shelter</title>
+<meta name="description" content="Jogo 2D top-down de sobrevivência: colete recursos, construa defesas e mantenha sua base viva contra hordas de zumbis — sozinho ou online com PvP.">
+<meta property="og:title" content="Last Shelter">
+<meta property="og:description" content="Sobreviva às hordas, construa sua base e supere outros jogadores. Protótipo grátis para Windows com multiplayer online.">
+<meta property="og:image" content="img/horde.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14110e;
+    --bg-alt: #1d1915;
+    --card: #26201a;
+    --line: #3a3128;
+    --text: #efe6d8;
+    --muted: #b3a690;
+    --accent: #e8a33a;
+    --accent-dark: #b9781c;
+    --danger: #d9534a;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 Inter, system-ui, sans-serif;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: var(--accent); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+  section { padding: 64px 0; }
+  section:nth-of-type(even) { background: var(--bg-alt); }
+  h1, h2 { font-family: "Black Ops One", Impact, sans-serif; font-weight: 400; letter-spacing: 1px; }
+  h2 { font-size: clamp(28px, 4vw, 38px); margin: 0 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 32px; max-width: 640px; }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    min-height: 92vh;
+    display: flex;
+    align-items: center;
+    background:
+      linear-gradient(180deg, rgba(20,17,14,.55) 0%, rgba(20,17,14,.8) 60%, var(--bg) 100%),
+      url("img/horde.webp") center / cover no-repeat;
+    padding: 80px 0;
+  }
+  .hero h1 {
+    font-size: clamp(44px, 8vw, 104px);
+    line-height: 1.05;
+    margin: 0 0 16px;
+    color: var(--accent);
+    text-shadow: 0 4px 0 #000, 0 0 40px rgba(232,163,58,.35);
+  }
+  .tagline { font-size: clamp(18px, 2.4vw, 24px); max-width: 620px; margin: 0 0 24px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+  .badge {
+    border: 1px solid var(--line);
+    background: rgba(0,0,0,.45);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .badge.warn { color: var(--accent); border-color: var(--accent-dark); }
+  .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 26px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 18px;
+    transition: transform .1s, background .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--accent); color: #1a1208; box-shadow: 0 4px 0 var(--accent-dark); }
+  .btn-primary:hover { background: #f2b555; }
+  .btn-ghost { border: 2px solid var(--line); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--accent); }
+  .small { font-size: 14px; color: var(--muted); }
+
+  /* Grids */
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); }
+  .icon { font-size: 28px; margin-bottom: 8px; }
+
+  .shots { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .shots figure { margin: 0; }
+  .shots img { border-radius: 10px; border: 1px solid var(--line); }
+  .shots figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+
+  .class-card { text-align: center; }
+  .class-card img { margin: 0 auto 8px; height: 180px; width: auto; image-rendering: auto; }
+  .class-card ul { text-align: left; color: var(--muted); padding-left: 20px; margin: 12px 0 0; }
+
+  .zombies { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin-top: 24px; }
+  .zombies figure { margin: 0; text-align: center; }
+  .zombies img { height: 140px; width: auto; }
+  .zombies figcaption { color: var(--muted); font-size: 14px; }
+
+  /* How to play */
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .steps li {
+    counter-increment: step;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 16px 16px 64px;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: #1a1208;
+    font-weight: 700; display: grid; place-items: center;
+  }
+  .note {
+    border-left: 4px solid var(--accent);
+    background: var(--card);
+    padding: 14px 18px;
+    border-radius: 0 10px 10px 0;
+    margin-top: 20px;
+    color: var(--muted);
+  }
+  .note strong { color: var(--text); }
+
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: .5px; }
+  tr:last-child td { border-bottom: 0; }
+  kbd {
+    background: #0f0d0b; border: 1px solid var(--line); border-bottom-width: 3px;
+    border-radius: 6px; padding: 2px 8px; font: 600 14px/1.4 Inter, sans-serif; white-space: nowrap;
+  }
+  .two-col { display: grid; gap: 32px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+
+  .tech { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tech span { background: var(--card); border: 1px solid var(--line); padding: 6px 12px; border-radius: 6px; font-size: 14px; }
+
+  .cta { text-align: center; }
+  .cta .actions { justify-content: center; }
+
+  footer { padding: 32px 0; text-align: center; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>LAST SHELTER</h1>
+    <p class="tagline">Colete recursos, construa defesas e mantenha sua base de pé contra hordas de zumbis cada vez maiores — sozinho ou online contra outros sobreviventes.</p>
+    <div class="badges">
+      <span class="badge">Windows</span>
+      <span class="badge">Grátis</span>
+      <span class="badge">Multiplayer online · até 4</span>
+      <span class="badge">PvP</span>
+      <span class="badge warn">Protótipo em desenvolvimento</span>
+    </div>
+    <div class="actions">
+      <a class="btn btn-primary js-download" href="#" target="_blank" rel="noopener">⬇ Baixar para Windows</a>
+      <a class="btn btn-ghost" href="#como-jogar">Como jogar</a>
+    </div>
+    <p class="small" style="margin-top:12px">Arquivo .zip · ~40 MB · Windows 10/11 64 bits</p>
+  </div>
+</header>
+
+<main>
+<section>
+  <div class="wrap">
+    <h2>Sobreviva o máximo que puder</h2>
+    <p class="lead">Cada jogador tem uma base principal. Se ela cair, acabou. O objetivo é simples: durar mais do que todo mundo.</p>
+    <div class="grid">
+      <div class="card"><div class="icon">🧟</div><h3>Hordas crescentes</h3><p>Ciclos de preparação, horda e recuperação. Cada horda chega maior, mais rápida e mais resistente.</p></div>
+      <div class="card"><div class="icon">🧱</div><h3>Construa sua base</h3><p>Paredes que se conectam sozinhas, torres automáticas e prédios de produção que podem ser melhorados.</p></div>
+      <div class="card"><div class="icon">🪓</div><h3>Recursos e economia</h3><p>Colete madeira, sucata e comida. Serrarias, coletores e fazendas produzem enquanto você luta.</p></div>
+      <div class="card"><div class="icon">📢</div><h3>Manipule as hordas</h3><p>O Emissor de Ruído atrai zumbis para longe da sua base… ou para perto da base de um rival.</p></div>
+      <div class="card"><div class="icon">⚔️</div><h3>Multiplayer com PvP</h3><p>Até 4 jogadores online no mesmo mapa. Ataque jogadores e construções inimigas.</p></div>
+      <div class="card"><div class="icon">🏆</div><h3>Ranking de sobrevivência</h3><p>Seu tempo de sobrevivência entra no ranking, separado por modo: solo, PvE e PvP.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Imagens</h2>
+    <p class="lead">Capturas do protótipo atual.</p>
+    <div class="shots">
+      <figure><img src="img/base.webp" alt="Base cercada por paredes, torres e prédios de produção" loading="lazy" width="1280" height="720"><figcaption>Base com paredes, torres, serraria, coletor de sucata e fazenda.</figcaption></figure>
+      <figure><img src="img/horde.webp" alt="Zumbis avançando contra a base enquanto as torres atiram" loading="lazy" width="1280" height="720"><figcaption>A horda chegando — as torres atiram sozinhas.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Escolha sua classe</h2>
+    <p class="lead">Todas as classes lutam, constroem e coletam. A diferença está em onde cada uma brilha.</p>
+    <div class="grid">
+      <div class="card class-card">
+        <img src="img/class_builder.webp" alt="Builder" loading="lazy">
+        <h3>Builder</h3>
+        <p>O engenheiro da base.</p>
+        <ul><li>−25% no custo das construções</li><li>+30% de vida nas construções</li></ul>
+      </div>
+      <div class="card class-card">
+        <img src="img/class_sharpshooter.webp" alt="Sharpshooter" loading="lazy">
+        <h3>Sharpshooter</h3>
+        <p>Especialista em combate.</p>
+        <ul><li>+25% de dano</li><li>+25% de cadência de tiro</li><li>+20% de alcance</li></ul>
+      </div>
+      <div class="card class-card">
+        <img src="img/class_survivalist.webp" alt="Survivalist" loading="lazy">
+        <h3>Survivalist</h3>
+        <p>Resistente e rápido na coleta.</p>
+        <ul><li>+40% de vida e −20% de dano recebido</li><li>+10% de velocidade</li><li>+50% na coleta</li></ul>
+      </div>
+    </div>
+    <div class="zombies">
+      <figure><img src="img/zombie_walker.webp" alt="Zumbi" loading="lazy"><figcaption>Walker</figcaption></figure>
+      <figure><img src="img/zombie_runner.webp" alt="Zumbi" loading="lazy"><figcaption>Runner</figcaption></figure>
+      <figure><img src="img/zombie_brute.webp" alt="Zumbi" loading="lazy"><figcaption>Brute</figcaption></figure>
+      <figure><img src="img/zombie_crawler.webp" alt="Zumbi" loading="lazy"><figcaption>Crawler</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="como-jogar">
+  <div class="wrap two-col">
+    <div>
+      <h2>Como jogar</h2>
+      <ol class="steps">
+        <li>Baixe o <strong>.zip</strong> pelo botão de download.</li>
+        <li>Extraia o arquivo e abra o <strong>LastShelter.exe</strong>.</li>
+        <li>Digite seu nome no menu.</li>
+        <li><strong>Single player</strong> para jogar sozinho, ou <strong>Online server (internet)</strong> para jogar com outras pessoas.</li>
+      </ol>
+      <div class="note"><strong>Aviso do Windows:</strong> o jogo ainda não tem assinatura digital, então o SmartScreen pode exibir "O Windows protegeu o computador". Clique em <strong>Mais informações → Executar assim mesmo</strong>.</div>
+      <div class="note"><strong>Servidor online:</strong> roda em um plano gratuito. Se ninguém jogou recentemente, a primeira conexão pode levar até 1 minuto. Uma partida por vez, até 4 jogadores — dá para entrar com a partida em andamento.</div>
+    </div>
+    <div>
+      <h2>Controles</h2>
+      <table>
+        <thead><tr><th>Ação</th><th>Tecla</th></tr></thead>
+        <tbody>
+          <tr><td>Mover</td><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td></tr>
+          <tr><td>Mirar / atirar</td><td>Mouse / <kbd>Clique esquerdo</kbd></td></tr>
+          <tr><td>Coletar / interagir</td><td><kbd>E</kbd></td></tr>
+          <tr><td>Construir</td><td><kbd>1</kbd> a <kbd>6</kbd></td></tr>
+          <tr><td>Posicionar / cancelar</td><td><kbd>Clique esquerdo</kbd> / <kbd>Esc</kbd></td></tr>
+          <tr><td>Melhorar construção</td><td><kbd>U</kbd></td></tr>
+          <tr><td>Zoom</td><td><kbd>Roda do mouse</kbd></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Por trás do jogo</h2>
+    <p class="lead">Um projeto pessoal feito para aprender desenvolvimento de jogos aplicando boas práticas de back-end.</p>
+    <div class="grid">
+      <div class="card"><h3>Servidor autoritativo</h3><p>O cliente só envia intenções. Dano, recursos, construção e pontuação são validados no servidor.</p></div>
+      <div class="card"><h3>Anti-trapaça básico</h3><p>Velocidade e posição dos jogadores são verificadas; teleporte e speed hack são rejeitados.</p></div>
+      <div class="card"><h3>Servidor dedicado</h3><p>Godot em modo headless dentro de um container Docker, com comunicação via WebSocket.</p></div>
+      <div class="card"><h3>Testes automatizados</h3><p>Servidor e clientes simulados no mesmo processo garantem que nada quebra a cada mudança.</p></div>
+    </div>
+    <div class="tech"><span>Godot 4.7</span><span>GDScript</span><span>WebSocket</span><span>Docker</span><span>Render</span></div>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>Pronto para sobreviver?</h2>
+    <p class="lead" style="margin-left:auto;margin-right:auto">É um protótipo: o feedback de quem joga ajuda muito a decidir os próximos passos.</p>
+    <div class="actions">
+      <a class="btn btn-primary js-download" href="#" target="_blank" rel="noopener">⬇ Baixar para Windows</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    Last Shelter · desenvolvido por Jefferson Mauricio Reis · Alguns sprites foram criados com auxílio de IA.
+  </div>
+</footer>
+
+<script>
+  // Download link (Google Drive). Change only this line when the file moves.
+  const DOWNLOAD_URL = "";
+
+  document.querySelectorAll(".js-download").forEach((link) => {
+    if (DOWNLOAD_URL) {
+      link.href = DOWNLOAD_URL;
+    } else {
+      link.removeAttribute("target");
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        alert("O link de download ainda não foi publicado. Volte em breve!");
+      });
+    }
+  });
+</script>
+</body>
+</html>
